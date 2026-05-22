@@ -12,13 +12,15 @@ import 'screens/auth/screens/verify_code.dart';
 import 'screens/auth/screens/reset_password.dart';
 import 'screens/auth/screens/success.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/home/library_screen.dart';
+import 'screens/home/new_recipe_screen.dart';
+import 'screens/home/profile_screen.dart';
+import 'screens/home/search_screen.dart';
 import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await AuthService.instance.init();
   final initialRoute = AuthService.instance.isSignedIn
       ? '/home'
@@ -61,6 +63,10 @@ class TasteBookApp extends StatelessWidget {
         '/auth/reset-password': (context) => const ResetPasswordScreen(),
         '/auth/success': (context) => const AuthSuccessScreen(),
         '/home': (context) => const HomeScreen(),
+        '/library': (context) => const LibraryScreen(),
+        '/new-recipe': (context) => const NewRecipeScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/search': (context) => const SearchScreen(),
       },
     );
   }

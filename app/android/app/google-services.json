@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "553633504317",
+    "project_id": "tastebookbase",
+    "storage_bucket": "tastebookbase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553633504317:android:fc62c21a26f94e5eb25e54",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZ_TdcyDDite1CwyUl58k_pigKY6kx72w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

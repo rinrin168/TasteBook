@@ -34,22 +34,21 @@ dependencies:
   cupertino_icons:
 
   # Firebase
-  firebase_core:
-  firebase_auth:
-  cloud_firestore:
-  firebase_storage:
+  firebase_core: ^4.9.0
+  firebase_auth: ^6.5.1
+  cloud_firestore: ^6.4.1
 
   # State Management
   provider:
 
   # Images
-  image_picker:
+  image_picker: ^1.2.2
   cached_network_image:
 
   # UI
   flutter_svg:
   google_fonts:
-  fluttertoast:
+  fluttertoast: ^9.1.0
   flutter_spinkit:
 
   # Validation
@@ -57,7 +56,7 @@ dependencies:
 
   # Utilities
   intl:
-  shared_preferences:
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
