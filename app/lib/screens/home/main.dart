@@ -25,7 +25,10 @@ class HomeScreen extends StatelessWidget {
               onPressed: () async {
                 await AuthService.instance.signOut();
                 if (context.mounted) {
-                  Navigator.of(context).pushReplacementNamed('/auth');
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/auth/get-started',
+                    (route) => false,
+                  );
                 }
               },
               child: const Text('Sign out'),
