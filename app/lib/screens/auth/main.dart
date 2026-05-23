@@ -1,202 +1,91 @@
 import 'package:flutter/material.dart';
-import 'package:app/core/theme.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-import 'widgets/auth_card.dart';
-import 'widgets/buttons.dart';
+import 'firebase_options.dart';
 
-class AuthGateway extends StatelessWidget {
-  const AuthGateway({super.key});
+import 'core/theme.dart';
 
-  @override
-  Widget build(BuildContext context) {
-    // StreamBuilder listens directly to the Firebase native authentication state stream
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // If snapshot has user data, bypass this landing hub entirely
-        if (snapshot.connectionState == ConnectionState.active) {
-          final User? user = snapshot.data;
-          if (user != null) {
-            // Use a post-frame callback to trigger navigation outside of building contexts safely
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(
-                context,
-              ).pushNamedAndRemoveUntil('/home', (route) => false);
-            });
-            return const Scaffold(
-              backgroundColor: TasteBookColors.tan,
-              body: Center(
-                child: CircularProgressIndicator(color: TasteBookColors.cocoa),
-              ),
-            );
-          }
-        }
+import 'screens/auth/main.dart';
 
-        // Default landing interface displayed when user is unauthenticated
-        return Scaffold(
-          backgroundColor: TasteBookColors.tan,
-          body: SafeArea(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 430),
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 24,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      AuthCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              children: [
-                                _PillChip(
-                                  label: 'TasteBook',
-                                  background: TasteBookColors.tan.withValues(
-                                    alpha: 0.14,
-                                  ),
-                                ),
-                                const Spacer(),
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () =>
-                                      Navigator.of(context).maybePop(),
-                                  icon: const Icon(
-                                    Icons.arrow_back_ios_new_rounded,
-                                    size: 18,
-                                    color: TasteBookColors.espresso,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 18),
-                            Text(
-                              'Welcome Back!',
-                              style: Theme.of(context).textTheme.headlineMedium
-                                  ?.copyWith(
-                                    color: TasteBookColors.espresso,
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.05,
-                                  ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'A clean, phone-first entry point for browsing recipes and signing in quickly.',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: TasteBookColors.espresso.withValues(
-                                      alpha: 0.8,
-                                    ),
-                                    height: 1.4,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      AuthCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Choose a route',
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    color: TasteBookColors.espresso,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Get started, log in, or create a new account.',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: TasteBookColors.espresso.withValues(
-                                      alpha: 0.78,
-                                    ),
-                                    height: 1.35,
-                                  ),
-                            ),
-                            const SizedBox(height: 18),
-                            PrimaryButton(
-                              onPressed: () => Navigator.of(
-                                context,
-                              ).pushNamed('/auth/get-started'),
-                              label: 'Get Started',
-                            ),
-                            const SizedBox(height: 12),
-                            PrimaryButton(
-                              onPressed: () => Navigator.of(
-                                context,
-                              ).pushNamed('/auth/login'),
-                              label: 'Log In',
-                            ),
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: () => Navigator.of(
-                                context,
-                              ).pushNamed('/auth/forgot-password'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: TasteBookColors.cocoa,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                              ),
-                              child: const Text('Forgot Password?'),
-                            ),
-                            const SizedBox(height: 4),
-                            PrimaryButton(
-                              onPressed: () => Navigator.of(
-                                context,
-                              ).pushNamed('/auth/signup'),
-                              label: 'Sign Up',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+import 'screens/auth/screens/login.dart';
+import 'screens/auth/screens/get_started.dart';
+import 'screens/auth/screens/signup.dart';
+import 'screens/auth/screens/forgot_password.dart';
+import 'screens/auth/screens/verify_email.dart';
+import 'screens/auth/screens/reset_password.dart';
+import 'screens/auth/screens/success.dart';
+
+import 'screens/home/home_screen.dart';
+import 'screens/home/library_screen.dart';
+import 'screens/home/new_recipe_screen.dart';
+import 'screens/home/profile_screen.dart';
+import 'screens/home/search_screen.dart';
+
+import 'services/auth_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await AuthService.instance.init();
+
+  final initialRoute = AuthService.instance.isSignedIn
+      ? '/home'
+      : '/auth/get-started';
+
+  runApp(TasteBookApp(initialRoute: initialRoute));
 }
 
-class _PillChip extends StatelessWidget {
-  const _PillChip({required this.label, this.background});
+class TasteBookApp extends StatelessWidget {
+  const TasteBookApp({super.key, required this.initialRoute});
 
-  final String label;
-  final Color? background;
+  final String initialRoute;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: background ?? TasteBookColors.sand.withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: TasteBookColors.sand.withValues(alpha: 0.18)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: TasteBookColors.espresso,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      title: 'TasteBook',
+
+      theme: appTheme(),
+
+      initialRoute: initialRoute,
+
+      routes: {
+        // =========================
+        // AUTH
+        // =========================
+        '/auth': (context) => const AuthGateway(),
+
+        '/auth/get-started': (context) => const GetStartedScreen(),
+
+        '/auth/login': (context) => const LoginScreen(),
+
+        '/auth/signup': (context) => const SignUpScreen(),
+
+        '/auth/forgot-password': (context) => const ForgotPasswordScreen(),
+
+        '/auth/verify-email': (context) => const VerifyEmailScreen(),
+
+        '/auth/reset-password': (context) => const ResetPasswordScreen(),
+
+        '/auth/success': (context) => const AuthSuccessScreen(),
+
+        // =========================
+        // HOME
+        // =========================
+        '/home': (context) => const HomeScreen(),
+
+        '/library': (context) => const LibraryScreen(),
+
+        '/new-recipe': (context) => const NewRecipeScreen(),
+
+        '/profile': (context) => const ProfileScreen(),
+
+        '/search': (context) => const SearchScreen(),
+      },
     );
   }
 }
