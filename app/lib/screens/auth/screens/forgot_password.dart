@@ -50,7 +50,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _showSnackBar('Password reset link sent! Check your inbox.');
 
       // Send them to the check success screen
-      Navigator.of(context).pushReplacementNamed('/auth/success');
+      Navigator.of(context).pushReplacementNamed(
+        '/auth/success',
+        arguments: {
+          'title': 'Reset Link Sent',
+          'message': 'We have sent a secure password reset link to your email address. Please follow the instructions to reset your password.',
+          'buttonLabel': 'Back to Log In',
+          'onPressedRoute': '/auth/login',
+          'icon': Icons.mark_email_read_outlined,
+        },
+      );
     } on FirebaseAuthException catch (error) {
       _showSnackBar(error.message ?? error.code);
     } catch (error) {
@@ -82,7 +91,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       IconButton(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        onPressed: () => Navigator.of(context).maybePop(),
+                        onPressed: () async {
+                          final didPop = await Navigator.of(context).maybePop();
+                          if (!didPop && context.mounted) {
+                            Navigator.of(context).pushReplacementNamed('/auth/login');
+                          }
+                        },
                         icon: const Icon(
                           Icons.arrow_back_ios_new_rounded,
                           size: 18,

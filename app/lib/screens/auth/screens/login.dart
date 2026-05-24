@@ -127,7 +127,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         constraints: const BoxConstraints(),
 
-                        onPressed: () => Navigator.of(context).maybePop(),
+                        onPressed: () async {
+                          final didPop = await Navigator.of(context).maybePop();
+                          if (!didPop && context.mounted) {
+                            Navigator.of(context).pushReplacementNamed('/auth/get-started');
+                          }
+                        },
 
                         icon: const Icon(
                           Icons.arrow_back_ios_new_rounded,

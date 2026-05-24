@@ -8,32 +8,58 @@ class AuthSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final title = args?['title'] as String? ?? 'Success';
+    final message = args?['message'] as String?;
+    final buttonLabel = args?['buttonLabel'] as String? ?? 'Go to Home';
+    final onPressedRoute = args?['onPressedRoute'] as String? ?? '/home';
+    final iconData = args?['icon'] as IconData? ?? Icons.check_circle_outline;
+
     return Scaffold(
       backgroundColor: TasteBookColors.tan,
       body: SafeArea(
-        child: AuthCard(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                size: 84,
-                color: TasteBookColors.cocoa,
+        child: Center(
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: AuthCard(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    iconData,
+                    size: 84,
+                    color: TasteBookColors.cocoa,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: TasteBookColors.espresso,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  if (message != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: TasteBookColors.espresso.withValues(alpha: 0.85),
+                            height: 1.4,
+                          ),
+                    ),
+                  ],
+                  const SizedBox(height: 28),
+                  PrimaryButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushReplacementNamed(onPressedRoute),
+                    label: buttonLabel,
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                'Success',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: TasteBookColors.espresso,
-                ),
-              ),
-              const SizedBox(height: 12),
-              PrimaryButton(
-                onPressed: () =>
-                    Navigator.of(context).pushReplacementNamed('/home'),
-                label: 'Go to Home',
-              ),
-            ],
+            ),
           ),
         ),
       ),

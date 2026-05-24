@@ -5,7 +5,7 @@ import '../../models/recipe_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/recipe_service.dart';
 
-void showAddRecipePopup(BuildContext context) {
+void showAddRecipePopup(BuildContext context, {RecipeModel? recipeToEdit}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -18,9 +18,9 @@ void showAddRecipePopup(BuildContext context) {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
-            child: const Material(
+            child: Material(
               color: AppColors.tan,
-              child: _AddRecipeFormSheet(),
+              child: _AddRecipeFormSheet(recipeToEdit: recipeToEdit),
             ),
           ),
         ),
@@ -30,7 +30,9 @@ void showAddRecipePopup(BuildContext context) {
 }
 
 class _AddRecipeFormSheet extends StatefulWidget {
-  const _AddRecipeFormSheet();
+  const _AddRecipeFormSheet({this.recipeToEdit});
+
+  final RecipeModel? recipeToEdit;
 
   @override
   State<_AddRecipeFormSheet> createState() => _AddRecipeFormSheetState();
@@ -61,6 +63,24 @@ class _AddRecipeFormSheetState extends State<_AddRecipeFormSheet> {
   bool _isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.recipeToEdit != null) {
+      final recipe = widget.recipeToEdit!;
+      _nameController.text = recipe.title;
+      _descriptionController.text = recipe.description;
+      _ingredientsController.text = recipe.ingredients;
+      _instructionsController.text = recipe.instructions;
+      if (_categories.contains(recipe.category)) {
+        _selectedCategory = recipe.category;
+      } else {
+        _selectedCategory = 'Other';
+        _otherCategoryController.text = recipe.category;
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
@@ -86,32 +106,51 @@ class _AddRecipeFormSheetState extends State<_AddRecipeFormSheet> {
     });
 
     try {
-      await RecipeService.instance.createRecipe(
-        RecipeModel(
-          id: '',
+      final categoryStr = _selectedCategory ??
+          (_otherCategoryController.text.trim().isNotEmpty
+              ? _otherCategoryController.text.trim()
+              : 'Other');
+
+      if (widget.recipeToEdit != null) {
+        // Edit mode (Update)
+        final updatedRecipe = widget.recipeToEdit!.copyWith(
           title: _nameController.text.trim(),
-          authorName: user.displayName?.isNotEmpty == true
-              ? user.displayName!
-              : 'You',
-          authorId: user.uid,
-          category:
-              _selectedCategory ??
-              (_otherCategoryController.text.trim().isNotEmpty
-                  ? _otherCategoryController.text.trim()
-                  : 'Other'),
+          category: categoryStr,
           description: _descriptionController.text.trim(),
           ingredients: _ingredientsController.text.trim(),
           instructions: _instructionsController.text.trim(),
-          imagePath: 'assets/images/img1.jpg',
-          createdAt: DateTime.now(),
-          favoriteUserIds: const [],
-        ),
-      );
-      await RecipeService.instance.incrementUserRecipeCount(user.uid);
+        );
+        await RecipeService.instance.updateRecipe(updatedRecipe);
+      } else {
+        // Create mode
+        await RecipeService.instance.createRecipe(
+          RecipeModel(
+            id: '',
+            title: _nameController.text.trim(),
+            authorName: user.displayName?.isNotEmpty == true
+                ? user.displayName!
+                : 'You',
+            authorId: user.uid,
+            category: categoryStr,
+            description: _descriptionController.text.trim(),
+            ingredients: _ingredientsController.text.trim(),
+            instructions: _instructionsController.text.trim(),
+            imagePath: 'assets/images/img1.jpg',
+            createdAt: DateTime.now(),
+            favoriteUserIds: const [],
+          ),
+        );
+        await RecipeService.instance.incrementUserRecipeCount(user.uid);
+      }
+
       if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Recipe posted successfully.')),
+        SnackBar(
+          content: Text(widget.recipeToEdit != null
+              ? 'Recipe updated successfully.'
+              : 'Recipe posted successfully.'),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
@@ -144,7 +183,7 @@ class _AddRecipeFormSheetState extends State<_AddRecipeFormSheet> {
                   children: [
                     Expanded(
                       child: Text(
-                        'New Recipes',
+                        widget.recipeToEdit != null ? 'Edit Recipe' : 'New Recipes',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(
@@ -297,7 +336,9 @@ class _AddRecipeFormSheetState extends State<_AddRecipeFormSheet> {
                             shape: const StadiumBorder(),
                           ),
                           child: Text(
-                            _isSubmitting ? 'Posting...' : 'Post',
+                            _isSubmitting
+                                ? (widget.recipeToEdit != null ? 'Saving...' : 'Posting...')
+                                : (widget.recipeToEdit != null ? 'Save' : 'Post'),
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                         ),

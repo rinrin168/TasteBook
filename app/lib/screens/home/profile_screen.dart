@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../services/auth_service.dart';
@@ -17,8 +19,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _recipeCountController = TextEditingController();
+  final FocusNode _passwordFocusNode = FocusNode();
+  final ImagePicker _picker = ImagePicker();
 
   bool _isLoading = true;
+  String _selectedAvatar = '🧑‍🍳';
+
+  static const _avatars = [
+    '🧑‍🍳', '👩‍🍳', '🍳', '🍕',
+    '🍔', '🍰', '🍓', '🥑',
+    '🧁', '🍩', '🍣', '🌮'
+  ];
 
   @override
   void initState() {
@@ -38,6 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _recipeCountController.text =
         (profile?['recipeCount'] as num?)?.toInt().toString() ?? '0';
     _passwordController.text = '';
+    _selectedAvatar = profile?['avatar'] as String? ?? '🧑‍🍳';
 
     setState(() {
       _isLoading = false;
@@ -50,6 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _recipeCountController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -69,12 +82,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           password: _passwordController.text.trim().isEmpty
               ? null
               : _passwordController.text.trim(),
+          avatar: _selectedAvatar,
         )
         .then((_) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile changes saved.')),
           );
+          _passwordController.clear();
         })
         .catchError((error) {
           if (!mounted) return;
@@ -82,6 +97,160 @@ class _ProfileScreenState extends State<ProfileScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(error.toString())));
         });
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 150,
+        maxHeight: 150,
+        imageQuality: 60, // Compress to optimize Firestore storage sizes
+      );
+
+      if (image == null) return;
+
+      final bytes = await image.readAsBytes();
+      final base64String = base64Encode(bytes);
+
+      setState(() {
+        _selectedAvatar = 'data:image/jpeg;base64,$base64String';
+      });
+
+      _saveChanges();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error picking image: $e')),
+      );
+    }
+  }
+
+  void _editAvatar() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.tan,
+      isScrollControlled: true, // Allow custom height constraint without clipping
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+          ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(sheetContext).size.height * 0.75, // Cap height to 75%
+            ),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Select Chef Avatar',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppColors.text,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 18),
+                  
+                  // Image selection/upload button
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      _pickAndUploadImage();
+                    },
+                    icon: const Icon(Icons.add_a_photo_outlined),
+                    label: const Text('Upload Custom Photo'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.text,
+                      side: const BorderSide(color: AppColors.text, width: 1.5),
+                      shape: const StadiumBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Avatar Emojis Grid
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    itemCount: _avatars.length,
+                    itemBuilder: (context, index) {
+                      final avatarEmoji = _avatars[index];
+                      final isSelected = _selectedAvatar == avatarEmoji;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedAvatar = avatarEmoji;
+                          });
+                          Navigator.of(sheetContext).pop();
+                          _saveChanges(); // Auto-save on selection
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.coffee : AppColors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            avatarEmoji,
+                            style: const TextStyle(fontSize: 32),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAvatarWidget() {
+    if (_selectedAvatar.startsWith('data:image') || _selectedAvatar.length > 30) {
+      try {
+        final base64Data = _selectedAvatar.split(',').last;
+        final decodedBytes = base64Decode(base64Data);
+        return ClipOval(
+          child: Image.memory(
+            decodedBytes,
+            width: 88,
+            height: 88,
+            fit: BoxFit.cover,
+          ),
+        );
+      } catch (e) {
+        return const Icon(Icons.person_rounded, size: 56, color: Colors.white);
+      }
+    } else {
+      return Text(
+        _selectedAvatar,
+        style: const TextStyle(fontSize: 44),
+      );
+    }
   }
 
   @override
@@ -139,21 +308,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   color: Color(0xFFE4585C),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: CircleAvatar(
                                     radius: 44,
-                                    backgroundColor: Color(0xFF24141F),
-                                    child: Icon(
-                                      Icons.person_rounded,
-                                      size: 56,
-                                      color: AppColors.white,
-                                    ),
+                                    backgroundColor: const Color(0xFF24141F),
+                                    child: _buildAvatarWidget(),
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 10),
                               TextButton.icon(
-                                onPressed: () {},
+                                onPressed: _editAvatar,
                                 icon: const Icon(
                                   Icons.add_circle_outline_rounded,
                                 ),
@@ -178,25 +343,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                         ),
                         const SizedBox(height: 14),
-                        _FieldLabel('Username'),
+                        const _FieldLabel('Username'),
                         const SizedBox(height: 6),
                         _ProfileInput(controller: _usernameController),
                         const SizedBox(height: 12),
-                        _FieldLabel('Email Address'),
+                        const _FieldLabel('Email Address'),
                         const SizedBox(height: 6),
                         _ProfileInput(controller: _emailController),
                         const SizedBox(height: 12),
-                        _FieldLabel('Password'),
+                        const _FieldLabel('New Password'),
                         const SizedBox(height: 6),
                         _ProfileInput(
                           controller: _passwordController,
                           obscureText: true,
+                          focusNode: _passwordFocusNode,
                         ),
                         const SizedBox(height: 6),
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              _passwordFocusNode.requestFocus();
+                            },
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.text,
                               padding: EdgeInsets.zero,
@@ -210,7 +378,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _FieldLabel('Add Recipes'),
+                        const _FieldLabel('Posted Recipes count'),
                         const SizedBox(height: 6),
                         _ProfileInput(
                           controller: _recipeCountController,
@@ -308,11 +476,13 @@ class _ProfileInput extends StatelessWidget {
     required this.controller,
     this.obscureText = false,
     this.readOnly = false,
+    this.focusNode,
   });
 
   final TextEditingController controller;
   final bool obscureText;
   final bool readOnly;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -320,6 +490,7 @@ class _ProfileInput extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       readOnly: readOnly,
+      focusNode: focusNode,
       style: const TextStyle(
         color: AppColors.text,
         fontWeight: FontWeight.w600,

@@ -38,6 +38,9 @@ class AuthService {
       // Sync display name with Firebase Auth Core profile
       await credential.user!.updateDisplayName(fullName);
 
+      // Trigger email verification
+      await credential.user!.sendEmailVerification();
+
       // Create user profile inside your Cloud Firestore database
       await _db.collection('users').doc(credential.user!.uid).set({
         'uid': credential.user!.uid,
@@ -75,6 +78,14 @@ class AuthService {
     return doc.data();
   }
 
+  /// Wrapper for signIn calling signInWithEmailOrUsername
+  Future<UserCredential> signIn({
+    required String email,
+    required String password,
+  }) async {
+    return signInWithEmailOrUsername(identifier: email, password: password);
+  }
+
   /// 5. SIGN IN WITH EMAIL OR USERNAME
   /// Handles user login verification checks dynamically
   Future<UserCredential> signInWithEmailOrUsername({
@@ -106,15 +117,8 @@ class AuthService {
       password: password,
     );
 
-    // Guard check: Deny access if they have not yet verified their email link
-    if (credential.user != null && !credential.user!.emailVerified) {
-      await _auth.signOut(); // Dump the active session state out
-      throw FirebaseAuthException(
-        code: 'email-not-verified',
-        message:
-            'Please click the link sent to your email to verify your account before logging in.',
-      );
-    }
+    // Note: Verification check on login is relaxed per request.
+    // Users can log in without verification. Verification is still done on sign up.
 
     return credential;
   }
@@ -125,6 +129,7 @@ class AuthService {
     String? displayName,
     String? email,
     String? password,
+    String? avatar,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('No authenticated user session active.');
@@ -143,6 +148,10 @@ class AuthService {
     if (email != null && email.isNotEmpty) {
       await user.verifyBeforeUpdateEmail(email);
       updates['email'] = email;
+    }
+
+    if (avatar != null && avatar.isNotEmpty) {
+      updates['avatar'] = avatar;
     }
 
     if (updates.length > 1) {
