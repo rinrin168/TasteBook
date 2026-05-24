@@ -80,15 +80,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
   }
 
-  void _editRecipe() {
-    showAddRecipePopup(
+  void _editRecipe() async {
+    final updatedRecipe = await showAddRecipePopup(
       context,
       recipeToEdit: _recipe,
     );
-    // Listen to changes if needed, but since sheet pops, we can refresh when modal closes
-    // Actually, we could watch or listen, but a simpler way is refreshing this screen's state if we set a listener.
-    // However, since it is backed by Firestore snapshots in parent screens, we can just pop or reload.
-    // Let's pop back to library/home on change, or simply popped and show a notice.
+    if (updatedRecipe != null && mounted) {
+      setState(() {
+        _recipe = updatedRecipe;
+      });
+    }
   }
 
   void _confirmDelete() {

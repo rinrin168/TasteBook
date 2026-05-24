@@ -85,7 +85,6 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
           favoriteUserIds: const [],
         ),
       );
-      await RecipeService.instance.incrementUserRecipeCount(user.uid);
       if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(

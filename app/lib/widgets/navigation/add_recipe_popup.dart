@@ -5,8 +5,8 @@ import '../../models/recipe_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/recipe_service.dart';
 
-void showAddRecipePopup(BuildContext context, {RecipeModel? recipeToEdit}) {
-  showModalBottomSheet<void>(
+Future<RecipeModel?> showAddRecipePopup(BuildContext context, {RecipeModel? recipeToEdit}) {
+  return showModalBottomSheet<RecipeModel?>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -111,9 +111,10 @@ class _AddRecipeFormSheetState extends State<_AddRecipeFormSheet> {
               ? _otherCategoryController.text.trim()
               : 'Other');
 
+      RecipeModel? updatedRecipe;
       if (widget.recipeToEdit != null) {
         // Edit mode (Update)
-        final updatedRecipe = widget.recipeToEdit!.copyWith(
+        updatedRecipe = widget.recipeToEdit!.copyWith(
           title: _nameController.text.trim(),
           category: categoryStr,
           description: _descriptionController.text.trim(),
@@ -140,11 +141,10 @@ class _AddRecipeFormSheetState extends State<_AddRecipeFormSheet> {
             favoriteUserIds: const [],
           ),
         );
-        await RecipeService.instance.incrementUserRecipeCount(user.uid);
       }
 
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(updatedRecipe);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(widget.recipeToEdit != null

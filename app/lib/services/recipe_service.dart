@@ -137,52 +137,62 @@ class RecipeService {
   Stream<List<RecipeModel>> watchUserRecipes(String userId) {
     return _recipes
         .where('authorId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map(RecipeModel.fromFirestore)
-              .toList(growable: false),
+          (snapshot) {
+            final list = snapshot.docs.map(RecipeModel.fromFirestore).toList();
+            list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            return list;
+          },
         );
   }
 
   Stream<List<RecipeModel>> watchFavoriteRecipes(String userId) {
     return _recipes
         .where('favoriteUserIds', arrayContains: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map(RecipeModel.fromFirestore)
-              .toList(growable: false),
+          (snapshot) {
+            final list = snapshot.docs.map(RecipeModel.fromFirestore).toList();
+            list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            return list;
+          },
         );
   }
 
   Future<void> createRecipe(RecipeModel recipe) async {
-    await _recipes.add(recipe.toFirestore());
+    final docRef = _recipes.doc();
+    final batch = _firestore.batch();
+    batch.set(docRef, recipe.toFirestore());
+    batch.set(
+      _firestore.collection('users').doc(recipe.authorId),
+      {
+        'recipeCount': FieldValue.increment(1),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+    await batch.commit();
   }
 
   Future<void> updateRecipe(RecipeModel recipe) async {
-    await _recipes.doc(recipe.id).update(recipe.toFirestore());
+    final data = recipe.toFirestore();
+    data.remove('createdAt');
+    await _recipes.doc(recipe.id).update(data);
   }
 
   Future<void> deleteRecipe(String recipeId, String userId) async {
-    await _recipes.doc(recipeId).delete();
-    await decrementUserRecipeCount(userId);
-  }
-
-  Future<void> incrementUserRecipeCount(String userId) async {
-    await _firestore.collection('users').doc(userId).set({
-      'recipeCount': FieldValue.increment(1),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-  }
-
-  Future<void> decrementUserRecipeCount(String userId) async {
-    await _firestore.collection('users').doc(userId).set({
-      'recipeCount': FieldValue.increment(-1),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    final batch = _firestore.batch();
+    batch.delete(_recipes.doc(recipeId));
+    batch.set(
+      _firestore.collection('users').doc(userId),
+      {
+        'recipeCount': FieldValue.increment(-1),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+    await batch.commit();
   }
 
   Future<void> toggleFavorite({
