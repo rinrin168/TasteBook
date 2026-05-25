@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../widgets/common/section_title.dart';
+import '../../widgets/common/recipe_image.dart';
 import '../../widgets/navigation/add_recipe_popup.dart';
 import '../../widgets/navigation/bottom_navbar.dart';
 import '../../models/recipe_model.dart';
@@ -35,25 +36,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
             final postedList = postedSnapshot.data ?? const [];
 
             return Scaffold(
-              backgroundColor: AppColors.tan,
+              backgroundColor: AppColors.background,
               body: SafeArea(
                 bottom: false,
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
+                    padding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
                           'Library',
                           style: textTheme.headlineMedium?.copyWith(
-                            color: AppColors.text,
+                            color: AppColors.primary,
                             fontWeight: FontWeight.w900,
-                            letterSpacing: -0.6,
+                            letterSpacing: -1.0,
+                            fontSize: 28,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 6),
                         const Text(
                           'Keep track of the recipes you love and the ones you create.',
                           style: TextStyle(
@@ -62,7 +64,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             height: 1.35,
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
                         _LibraryTabs(
                           activeTab: _activeTab,
                           favoriteCount: favoritesList.length,
@@ -82,7 +84,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             }
                           },
                         ),
-                        const SizedBox(height: 26),
+                        const SizedBox(height: 22),
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 220),
                           switchInCurve: Curves.easeOut,
@@ -103,7 +105,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                           )
                                         : favoritesList.isEmpty
                                             ? const Padding(
-                                                padding: EdgeInsets.symmetric(vertical: 20),
+                                                padding: EdgeInsets.symmetric(vertical: 40),
                                                 child: Text(
                                                   'No favorite recipes yet.',
                                                   textAlign: TextAlign.center,
@@ -141,7 +143,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                           )
                                         : postedList.isEmpty
                                             ? const Padding(
-                                                padding: EdgeInsets.symmetric(vertical: 20),
+                                                padding: EdgeInsets.symmetric(vertical: 40),
                                                 child: Text(
                                                   'No posted recipes yet.',
                                                   textAlign: TextAlign.center,
@@ -228,7 +230,7 @@ class _LibraryTabs extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.tan.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
@@ -280,24 +282,33 @@ class _LibraryTabButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: BoxDecoration(
-          color: active ? AppColors.coffee : Colors.transparent,
+          color: active ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: foreground,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
               ),
             ),
-            Text(
-              '$count',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: foreground,
-                fontWeight: FontWeight.w900,
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: active ? AppColors.white.withValues(alpha: 0.2) : AppColors.tan,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$count',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 10,
+                ),
               ),
             ),
           ],
@@ -326,6 +337,14 @@ class _PostedRecipeTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.text.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(10),
         child: Row(
@@ -334,8 +353,8 @@ class _PostedRecipeTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               child: Hero(
                 tag: 'recipe-img-${recipe.id}',
-                child: Image.asset(
-                  recipe.imagePath,
+                child: RecipeImage(
+                  imagePath: recipe.imagePath,
                   width: 90,
                   height: 90,
                   fit: BoxFit.cover,
@@ -371,9 +390,9 @@ class _PostedRecipeTile extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             IconButton(
-              icon: Icon(
+              icon: const Icon(
                 Icons.edit_outlined,
-                color: AppColors.text.withValues(alpha: 0.75),
+                color: AppColors.primary,
                 size: 22,
               ),
               onPressed: () {
@@ -406,6 +425,14 @@ class _FavoriteRecipeTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.text.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(10),
         child: Row(
@@ -414,8 +441,8 @@ class _FavoriteRecipeTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               child: Hero(
                 tag: 'recipe-img-${recipe.id}',
-                child: Image.asset(
-                  recipe.imagePath,
+                child: RecipeImage(
+                  imagePath: recipe.imagePath,
                   width: 90,
                   height: 90,
                   fit: BoxFit.cover,
@@ -450,10 +477,13 @@ class _FavoriteRecipeTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Icon(
-              Icons.favorite,
-              color: Colors.redAccent.withValues(alpha: 0.95),
-              size: 22,
+            const Padding(
+              padding: EdgeInsets.only(right: 12.0),
+              child: Icon(
+                Icons.favorite,
+                color: Colors.redAccent,
+                size: 22,
+              ),
             ),
           ],
         ),

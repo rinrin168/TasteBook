@@ -131,7 +131,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     final email = user?.email ?? 'your email';
 
     return Scaffold(
-      backgroundColor: TasteBookColors.tan,
+      backgroundColor: TasteBookColors.cream,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

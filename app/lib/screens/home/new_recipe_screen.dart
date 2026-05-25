@@ -1,4 +1,7 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../models/recipe_model.dart';
@@ -36,7 +39,26 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
   ];
 
   String? _selectedCategory;
+  String? _selectedImagePath;
   bool _isSubmitting = false;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    try {
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImagePath = pickedFile.path;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking image: $e')),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -80,7 +102,7 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
           description: _descriptionController.text.trim(),
           ingredients: _ingredientsController.text.trim(),
           instructions: _instructionsController.text.trim(),
-          imagePath: 'assets/images/img1.jpg',
+          imagePath: _selectedImagePath ?? 'assets/images/img1.jpg',
           createdAt: DateTime.now(),
           favoriteUserIds: const [],
         ),
@@ -130,16 +152,31 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    'assets/images/img1.jpg',
-                    height: 140,
-                    fit: BoxFit.cover,
-                  ),
+                  child: _selectedImagePath != null
+                      ? (kIsWeb
+                          ? Image.network(
+                              _selectedImagePath!,
+                              height: 140,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            )
+                          : Image.file(
+                              File(_selectedImagePath!),
+                              height: 140,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ))
+                      : Image.asset(
+                          'assets/images/img1.jpg',
+                          height: 140,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
                 ),
                 const SizedBox(height: 8),
                 Center(
                   child: TextButton.icon(
-                    onPressed: () {},
+                    onPressed: _pickImage,
                     icon: const Icon(Icons.add_circle_outline_rounded),
                     label: const Text(
                       'Add Photos',
@@ -188,17 +225,19 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
                             _selectedCategory = category;
                           });
                         },
-                        labelStyle: const TextStyle(
-                          color: AppColors.text,
-                          fontWeight: FontWeight.w700,
+                        labelStyle: TextStyle(
+                          color: _selectedCategory == category ? AppColors.white : AppColors.text,
+                          fontWeight: FontWeight.w800,
                           fontSize: 12,
                         ),
                         backgroundColor: AppColors.white,
-                        selectedColor: AppColors.background,
-                        side: BorderSide.none,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
+                        selectedColor: AppColors.primary,
+                        side: BorderSide(
+                          color: _selectedCategory == category ? Colors.transparent : AppColors.outline.withValues(alpha: 0.5),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                   ],
@@ -208,21 +247,21 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
                 const SizedBox(height: 6),
                 _RecipeInput(
                   controller: _otherCategoryController,
-                  hintText: 'example description',
+                  hintText: 'Other category name',
                 ),
                 const SizedBox(height: 12),
                 const _FieldLabel('Ingredients'),
                 const SizedBox(height: 6),
                 _RecipeInput(
                   controller: _ingredientsController,
-                  hintText: 'example Ingredients',
+                  hintText: 'Ingredients (one per line)',
                 ),
                 const SizedBox(height: 12),
                 const _FieldLabel('Cooking Instructions'),
                 const SizedBox(height: 6),
                 _RecipeInput(
                   controller: _instructionsController,
-                  hintText: 'example instruction........',
+                  hintText: 'Cooking instructions steps',
                   maxLines: 5,
                 ),
                 const SizedBox(height: 22),
@@ -234,18 +273,15 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
                         child: OutlinedButton(
                           onPressed: () => Navigator.of(context).pop(),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.white,
-                            side: BorderSide(
-                              color: AppColors.white.withValues(alpha: 0.6),
+                            foregroundColor: AppColors.primary,
+                            side: const BorderSide(
+                              color: AppColors.primary,
+                              width: 1.5,
                             ),
-                            shape: StadiumBorder(
-                              side: BorderSide(
-                                color: AppColors.white.withValues(alpha: 0.6),
-                              ),
-                            ),
+                            shape: const StadiumBorder(),
                           ),
                           child: const Text(
-                            'Edit',
+                            'Cancel',
                             style: TextStyle(fontWeight: FontWeight.w800),
                           ),
                         ),
@@ -258,9 +294,10 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
                         child: FilledButton(
                           onPressed: _isSubmitting ? null : _postRecipe,
                           style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.white,
-                            foregroundColor: AppColors.text,
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.white,
                             shape: const StadiumBorder(),
+                            elevation: 2,
                           ),
                           child: Text(
                             _isSubmitting ? 'Posting...' : 'Post',
@@ -291,7 +328,7 @@ class _FieldLabel extends StatelessWidget {
       text,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
         color: AppColors.text,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
       ),
     );
   }
@@ -319,8 +356,8 @@ class _RecipeInput extends StatelessWidget {
       ),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(
-          color: AppColors.text,
+        hintStyle: TextStyle(
+          color: AppColors.coffee.withValues(alpha: 0.6),
           fontWeight: FontWeight.w600,
         ),
         filled: true,

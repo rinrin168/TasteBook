@@ -94,7 +94,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: TasteBookColors.tan,
+      backgroundColor: TasteBookColors.cream,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

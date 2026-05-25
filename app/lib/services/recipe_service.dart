@@ -94,6 +94,8 @@ class RecipeService {
     ),
   ];
 
+  /// Seeds default recipe objects into Cloud Firestore if the collection is empty.
+  /// Uses a Firestore Write Batch to write all mock data in a single round-trip.
   Future<void> seedDefaultRecipes() async {
     try {
       final snapshot = await _recipes.limit(1).get();
@@ -122,6 +124,8 @@ class RecipeService {
     }
   }
 
+  /// Returns a real-time reactive Stream of the newest 18 recipes.
+  /// Handled server-side using Firestore orderBy and limit filters.
   Stream<List<RecipeModel>> watchRecentRecipes({int limit = 18}) {
     return _recipes
         .orderBy('createdAt', descending: true)
@@ -134,6 +138,9 @@ class RecipeService {
         );
   }
 
+  /// Returns a real-time stream of recipes authored by a specific user ID.
+  /// Note: Sorting is executed client-side dynamically to prevent the need for
+  /// generating composite indexes in Cloud Firestore configurations.
   Stream<List<RecipeModel>> watchUserRecipes(String userId) {
     return _recipes
         .where('authorId', isEqualTo: userId)
@@ -147,6 +154,9 @@ class RecipeService {
         );
   }
 
+  /// Returns a real-time stream of recipes favorited by the active user.
+  /// Uses arrayContains to filter recipes where favoriteUserIds includes the userId.
+  /// Sorting is performed client-side to avoid Firestore composite indexing.
   Stream<List<RecipeModel>> watchFavoriteRecipes(String userId) {
     return _recipes
         .where('favoriteUserIds', arrayContains: userId)
@@ -160,6 +170,12 @@ class RecipeService {
         );
   }
 
+  /// CREATE Operation
+  /// Writes a new recipe and increments the author's total recipe counter.
+  /// 
+  /// Logic:
+  /// Uses an atomic Write Batch to stage both the recipe creation and user stats increment.
+  /// This ensures atomicity: both writes succeed or both roll back, keeping counts accurate.
   Future<void> createRecipe(RecipeModel recipe) async {
     final docRef = _recipes.doc();
     final batch = _firestore.batch();
@@ -175,12 +191,24 @@ class RecipeService {
     await batch.commit();
   }
 
+  /// UPDATE Operation
+  /// Updates recipe fields while retaining the historical creation date.
+  /// 
+  /// Logic:
+  /// Serializes the model using toFirestore() and explicitly deletes the 'createdAt' key
+  /// from the payload map before performing the Firestore update operation.
   Future<void> updateRecipe(RecipeModel recipe) async {
     final data = recipe.toFirestore();
     data.remove('createdAt');
     await _recipes.doc(recipe.id).update(data);
   }
 
+  /// DELETE Operation
+  /// Deletes a recipe and decrements the author's total recipe counter.
+  /// 
+  /// Logic:
+  /// Staged together inside a Write Batch to ensure that count stats never drift
+  /// from actual document records due to partial write completions.
   Future<void> deleteRecipe(String recipeId, String userId) async {
     final batch = _firestore.batch();
     batch.delete(_recipes.doc(recipeId));
@@ -195,6 +223,13 @@ class RecipeService {
     await batch.commit();
   }
 
+  /// TOGGLE FAVORITE Operation
+  /// Concurrency-safe favorite status updates.
+  /// 
+  /// Logic:
+  /// Uses a Firestore Transaction. It reads the current favorites array first, locking the document.
+  /// Updates the list locally and saves it back. If another user writes during this block,
+  /// Firestore automatically retries the logic to avoid overwrites or race conditions.
   Future<void> toggleFavorite({
     required String recipeId,
     required String userId,
@@ -219,6 +254,14 @@ class RecipeService {
     });
   }
 
+  /// SEARCH & FILTER Operations
+  /// Provides real-time matching across category, title, description, and tags.
+  /// 
+  /// Logic (Hybrid Processing Model):
+  /// 1. Server-Side Pre-Filtering: If category is selected, filters at Firestore database level.
+  /// 2. Client-Side Fuzzy Matching: Fetches the dataset and performs a multi-field,
+  ///    case-insensitive search across title, authorName, description, and ingredients.
+  /// 3. Client-Side Sorting: Dynamically sorts on the device by Newest or Popularity.
   Future<List<RecipeModel>> searchRecipes(
     String query, {
     String? category,

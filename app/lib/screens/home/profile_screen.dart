@@ -129,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _editAvatar() {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.tan,
+      backgroundColor: AppColors.background,
       isScrollControlled: true, // Allow custom height constraint without clipping
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -200,7 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.coffee : AppColors.white,
+                            color: isSelected ? AppColors.primary : AppColors.white,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -256,7 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.tan,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: _isLoading
@@ -264,12 +264,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 4, 18, 22),
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 22),
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(18, 12, 18, 22),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFBFA590),
-                      borderRadius: BorderRadius.circular(22),
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.text.withValues(alpha: 0.05),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -277,11 +285,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Row(
                           children: [
                             IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
+                              onPressed: () => Navigator.of(context).pushReplacementNamed('/home'),
                               icon: const Icon(
                                 Icons.arrow_back_ios_new_rounded,
                               ),
-                              color: AppColors.text,
+                              color: AppColors.primary,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
@@ -290,28 +298,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               'Profile',
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(
-                                    color: AppColors.text,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.6,
                                   ),
                             ),
                             const Spacer(flex: 2),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 20),
                         Center(
                           child: Column(
                             children: [
                               Container(
-                                width: 122,
-                                height: 122,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFE4585C),
+                                width: 110,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                  color: AppColors.accent.withValues(alpha: 0.25),
                                   shape: BoxShape.circle,
+                                  border: Border.all(color: AppColors.accent, width: 2.5),
                                 ),
                                 child: Center(
                                   child: CircleAvatar(
-                                    radius: 44,
-                                    backgroundColor: const Color(0xFF24141F),
+                                    radius: 46,
+                                    backgroundColor: AppColors.background,
                                     child: _buildAvatarWidget(),
                                   ),
                                 ),
@@ -323,26 +333,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Icons.add_circle_outline_rounded,
                                 ),
                                 label: const Text(
-                                  'Edit Photos',
+                                  'Change Avatar',
                                   style: TextStyle(fontWeight: FontWeight.w800),
                                 ),
                                 style: TextButton.styleFrom(
-                                  foregroundColor: AppColors.text,
+                                  foregroundColor: AppColors.primary,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 14),
                         Text(
                           'Personal Details',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: AppColors.text,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
                               ),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 16),
                         const _FieldLabel('Username'),
                         const SizedBox(height: 6),
                         _ProfileInput(controller: _usernameController),
@@ -358,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           obscureText: true,
                           focusNode: _passwordFocusNode,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
@@ -366,38 +377,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _passwordFocusNode.requestFocus();
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: AppColors.text,
+                              foregroundColor: AppColors.primary,
                               padding: EdgeInsets.zero,
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: const Text(
                               'Change Password',
-                              style: TextStyle(fontWeight: FontWeight.w700),
+                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
                             ),
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const _FieldLabel('Posted Recipes count'),
+                        const _FieldLabel('Posted Recipes Count'),
                         const SizedBox(height: 6),
                         _ProfileInput(
                           controller: _recipeCountController,
                           readOnly: true,
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 28),
                         Row(
                           children: [
                             Expanded(
                               child: SizedBox(
-                                height: 44,
+                                height: 48,
                                 child: OutlinedButton(
                                   onPressed: _signOut,
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.white,
-                                    side: BorderSide(
-                                      color: AppColors.white.withValues(
-                                        alpha: 0.65,
-                                      ),
+                                    foregroundColor: Colors.redAccent,
+                                    side: const BorderSide(
+                                      color: Colors.redAccent,
+                                      width: 1.5,
                                     ),
                                     shape: const StadiumBorder(),
                                   ),
@@ -410,16 +420,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: SizedBox(
-                                height: 44,
+                                height: 48,
                                 child: FilledButton(
                                   onPressed: _saveChanges,
                                   style: FilledButton.styleFrom(
-                                    backgroundColor: AppColors.white,
-                                    foregroundColor: AppColors.text,
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: AppColors.white,
                                     shape: const StadiumBorder(),
+                                    elevation: 2,
+                                    shadowColor: AppColors.primary.withValues(alpha: 0.25),
                                   ),
                                   child: const Text(
                                     'Save Changes',
@@ -465,7 +477,8 @@ class _FieldLabel extends StatelessWidget {
       text,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
         color: AppColors.text,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
+        fontSize: 12,
       ),
     );
   }
@@ -495,9 +508,18 @@ class _ProfileInput extends StatelessWidget {
         color: AppColors.text,
         fontWeight: FontWeight.w600,
       ),
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: AppColors.background.withValues(alpha: 0.8),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.outline.withValues(alpha: 0.45), width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
     );
   }

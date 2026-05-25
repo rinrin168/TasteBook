@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/section_title.dart';
+import '../../widgets/common/recipe_image.dart';
 import '../../widgets/navigation/add_recipe_popup.dart';
 import '../../widgets/navigation/bottom_navbar.dart';
 import '../../core/constants/app_colors.dart';
@@ -14,7 +15,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.tan,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: StreamBuilder<List<RecipeModel>>(
@@ -31,34 +32,77 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(22, 8, 22, 8),
-                    child: Text(
-                      'TasteBook',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(
-                            color: AppColors.text,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.6,
+                    padding: const EdgeInsets.fromLTRB(22, 16, 22, 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'TasteBook',
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -1.0,
+                                    fontSize: 28,
+                                  ),
+                            ),
+                            Text(
+                              'Your premium cooking guide',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.coffee,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.text.withValues(alpha: 0.05),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            height: 36,
+                            width: 36,
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   const SectionTitle(title: 'Popular Recipes This Week'),
-                  const SizedBox(height: 14),
-                  _HorizontalRecipeRail(recipes: displayRecipes),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 10),
+                  _HorizontalRecipeRail(
+                    recipes: displayRecipes,
+                    heroTagPrefix: 'popular-',
+                  ),
+                  const SizedBox(height: 24),
                   const SectionTitle(title: 'Spring Produce Recipes'),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   _HorizontalRecipeRail(
                     recipes: _rotateRecipes(displayRecipes, 2),
+                    heroTagPrefix: 'spring-',
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
                   const SectionTitle(title: 'One Pan No Dishes!'),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   _HorizontalRecipeRail(
                     recipes: _rotateRecipes(displayRecipes, 4),
+                    heroTagPrefix: 'onepan-',
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
                 ],
               ),
             );
@@ -95,23 +139,24 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _HorizontalRecipeRail extends StatelessWidget {
-  const _HorizontalRecipeRail({required this.recipes});
+  const _HorizontalRecipeRail({required this.recipes, this.heroTagPrefix = ''});
 
   final List<RecipeModel> recipes;
+  final String heroTagPrefix;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 286,
+      height: 295,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 22),
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         itemCount: recipes.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 14),
+        separatorBuilder: (context, index) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
           final recipe = recipes[index];
-          return _RecipeRailCard(recipe: recipe);
+          return _RecipeRailCard(recipe: recipe, heroTagPrefix: heroTagPrefix);
         },
       ),
     );
@@ -119,23 +164,39 @@ class _HorizontalRecipeRail extends StatelessWidget {
 }
 
 class _RecipeRailCard extends StatelessWidget {
-  const _RecipeRailCard({required this.recipe});
+  const _RecipeRailCard({required this.recipe, this.heroTagPrefix = ''});
 
   final RecipeModel recipe;
+  final String heroTagPrefix;
 
   String _timeLabel(DateTime createdAt) {
     final difference = DateTime.now().difference(createdAt);
     if (difference.inMinutes < 60) {
-      return '${difference.inMinutes.clamp(1, 59)} mins';
+      return '${difference.inMinutes.clamp(1, 59)}m ago';
     }
     if (difference.inHours < 24) {
-      return '${difference.inHours} hr${difference.inHours == 1 ? '' : 's'}';
+      return '${difference.inHours}h ago';
     }
-    return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'}';
+    return '${difference.inDays}d ago';
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'budget':
+        return AppColors.sage;
+      case 'affordable':
+        return AppColors.accent;
+      case 'one pot':
+        return AppColors.blueAccent;
+      default:
+        return AppColors.coffee;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final catColor = _getCategoryColor(recipe.category);
+    
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -144,54 +205,55 @@ class _RecipeRailCard extends StatelessWidget {
           ),
         );
       },
-      child: SizedBox(
-        width: 178,
+      child: Container(
+        width: 190,
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.text.withValues(alpha: 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: Hero(
-                    tag: 'recipe-img-${recipe.id}',
-                    child: Image.asset(
-                      recipe.imagePath,
-                      width: 178,
-                      height: 176,
-                      fit: BoxFit.cover,
-                    ),
+                Hero(
+                  tag: '${heroTagPrefix}recipe-img-${recipe.id}',
+                  child: RecipeImage(
+                    imagePath: recipe.imagePath,
+                    width: 190,
+                    height: 154,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 Positioned(
-                  top: 10,
-                  left: 10,
+                  top: 12,
+                  left: 12,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
-                      vertical: 6,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF79D7E7),
-                      borderRadius: BorderRadius.circular(12),
+                      color: catColor,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.local_offer_outlined,
-                          size: 16,
-                          color: AppColors.text,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          recipe.category,
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: AppColors.text,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      recipe.category,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 10,
+                        letterSpacing: 0.2,
+                      ),
                     ),
                   ),
                 ),
@@ -220,10 +282,10 @@ class _RecipeRailCard extends StatelessWidget {
                       }
                     },
                     child: Container(
-                      width: 28,
-                      height: 28,
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.2),
+                        color: Colors.black.withValues(alpha: 0.25),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -242,52 +304,62 @@ class _RecipeRailCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  _timeLabel(recipe.createdAt),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.text,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.schedule_rounded, size: 12, color: AppColors.coffee.withValues(alpha: 0.8)),
+                      const SizedBox(width: 3),
+                      Text(
+                        _timeLabel(recipe.createdAt),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.coffee,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.star_rounded,
+                        size: 13,
+                        color: Colors.amber[700],
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '4.8',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.text,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.thumb_up_alt_outlined,
-                  size: 14,
-                  color: AppColors.text,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '100%',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.text,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                  const SizedBox(height: 8),
+                  Text(
+                    recipe.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.text,
+                      fontWeight: FontWeight.w900,
+                      height: 1.15,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              recipe.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.text,
-                fontWeight: FontWeight.w900,
-                height: 1.08,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'By ${recipe.authorName}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.coffee,
-                fontWeight: FontWeight.w700,
-                fontSize: 11,
+                  const SizedBox(height: 6),
+                  Text(
+                    'By ${recipe.authorName}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.coffee,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../widgets/common/recipe_image.dart';
 import '../../widgets/navigation/add_recipe_popup.dart';
 import '../../widgets/navigation/bottom_navbar.dart';
 import '../../models/recipe_model.dart';
@@ -86,7 +87,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: AppColors.tan,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -94,42 +95,56 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             // Top Header & Search Input
             Padding(
-              padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
+              padding: const EdgeInsets.fromLTRB(22, 16, 22, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Search',
                     style: textTheme.headlineMedium?.copyWith(
-                      color: AppColors.text,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: -0.6,
+                      letterSpacing: -1.0,
+                      fontSize: 28,
                     ),
                   ),
                   const SizedBox(height: 14),
-                  TextField(
-                    controller: _controller,
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: (_) => _performSearch(),
-                    style: const TextStyle(color: AppColors.text),
-                    decoration: InputDecoration(
-                      hintText: 'Search recipes, authors, or ingredients',
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      suffixIcon: _controller.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear_rounded),
-                              onPressed: () {
-                                _controller.clear();
-                                _performSearch();
-                              },
-                            )
-                          : null,
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.text.withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _controller,
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _performSearch(),
+                      style: const TextStyle(color: AppColors.text, fontWeight: FontWeight.w600),
+                      decoration: InputDecoration(
+                        hintText: 'Search recipes, authors, or ingredients',
+                        hintStyle: TextStyle(color: AppColors.coffee.withValues(alpha: 0.7)),
+                        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.coffee),
+                        suffixIcon: _controller.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, color: AppColors.primary),
+                                onPressed: () {
+                                  _controller.clear();
+                                  _performSearch();
+                                },
+                              )
+                            : null,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
             // Horizontal Category Chips
             SizedBox(
@@ -160,9 +175,12 @@ class _SearchScreenState extends State<SearchScreen> {
                       color: isSelected ? AppColors.white : AppColors.text,
                       fontWeight: FontWeight.w800,
                     ),
-                    backgroundColor: AppColors.card.withValues(alpha: 0.65),
-                    selectedColor: AppColors.coffee,
-                    side: BorderSide.none,
+                    backgroundColor: AppColors.card,
+                    selectedColor: AppColors.primary,
+                    side: BorderSide(
+                      color: isSelected ? Colors.transparent : AppColors.outline.withValues(alpha: 0.5),
+                      width: 1,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -170,28 +188,28 @@ class _SearchScreenState extends State<SearchScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
             // Sort Selector bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: Row(
                 children: [
-                  const Icon(Icons.sort_rounded, size: 18, color: AppColors.text),
+                  const Icon(Icons.sort_rounded, size: 18, color: AppColors.primary),
                   const SizedBox(width: 6),
                   Text(
                     'Sort by:',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.text,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                         ),
                   ),
                   const SizedBox(width: 8),
                   DropdownButton<String>(
                     value: _selectedSort,
-                    dropdownColor: AppColors.tan,
+                    dropdownColor: AppColors.card,
                     underline: const SizedBox(),
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.text),
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
                     style: const TextStyle(
                       color: AppColors.text,
                       fontWeight: FontWeight.w800,
@@ -218,7 +236,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     '${_results.length} recipes found',
                     style: const TextStyle(
                       color: AppColors.coffee,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -233,7 +251,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 duration: const Duration(milliseconds: 240),
                 child: _isSearching
                     ? const Center(
-                        child: CircularProgressIndicator(color: AppColors.coffee),
+                        child: CircularProgressIndicator(color: AppColors.primary),
                       )
                     : _results.isEmpty
                         ? Center(
@@ -245,7 +263,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   Icon(
                                     Icons.search_off_rounded,
                                     size: 72,
-                                    color: AppColors.text.withValues(alpha: 0.4),
+                                    color: AppColors.text.withValues(alpha: 0.3),
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
@@ -273,7 +291,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             padding: const EdgeInsets.fromLTRB(22, 6, 22, 24),
                             physics: const BouncingScrollPhysics(),
                             itemCount: _results.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 12),
+                            separatorBuilder: (context, index) => const SizedBox(height: 14),
                             itemBuilder: (context, index) {
                               final recipe = _results[index];
                               return GestureDetector(
@@ -288,19 +306,25 @@ class _SearchScreenState extends State<SearchScreen> {
                                   decoration: BoxDecoration(
                                     color: AppColors.card,
                                     borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.text.withValues(alpha: 0.04),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
                                   clipBehavior: Clip.antiAlias,
                                   child: Row(
                                     children: [
                                       Hero(
-                                        tag: 'recipe-img-${recipe.id}',
-                                        child: SizedBox(
+                                        tag: 'search-recipe-img-${recipe.id}',
+                                        child: RecipeImage(
+                                          imagePath: recipe.imagePath,
                                           width: 110,
                                           height: 96,
-                                          child: Image.asset(
-                                            recipe.imagePath,
-                                            fit: BoxFit.cover,
-                                          ),
+                                          fit: BoxFit.cover,
                                         ),
                                       ),
                                       Expanded(
@@ -317,9 +341,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                                     .textTheme
                                                     .titleMedium
                                                     ?.copyWith(
-                                                      color: Colors.black,
+                                                      color: AppColors.text,
                                                       fontWeight: FontWeight.w800,
                                                       height: 1.15,
+                                                      fontSize: 14,
                                                     ),
                                               ),
                                               const SizedBox(height: 6),
@@ -329,7 +354,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                                     .textTheme
                                                     .bodySmall
                                                     ?.copyWith(
-                                                      color: Colors.black.withValues(alpha: 0.72),
+                                                      color: AppColors.coffee,
                                                       fontWeight: FontWeight.w700,
                                                     ),
                                               ),
@@ -340,8 +365,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                                     .textTheme
                                                     .labelMedium
                                                     ?.copyWith(
-                                                      color: AppColors.coffee,
-                                                      fontWeight: FontWeight.w700,
+                                                      color: AppColors.primary,
+                                                      fontWeight: FontWeight.w800,
+                                                      fontSize: 11,
                                                     ),
                                               ),
                                             ],

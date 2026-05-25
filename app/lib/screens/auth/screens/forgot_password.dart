@@ -76,7 +76,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: TasteBookColors.tan,
+      backgroundColor: TasteBookColors.cream,
       body: SafeArea(
         child: Center(
           child: AuthCard(

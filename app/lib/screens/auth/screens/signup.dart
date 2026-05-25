@@ -156,6 +156,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                   const SizedBox(height: 18),
 
+                  // LOGO
+                  Center(
+                    child: Image.asset('assets/images/logo.png', height: 75),
+                  ),
+                  const SizedBox(height: 16),
+
                   // TITLE
                   Text(
                     'Create Account',

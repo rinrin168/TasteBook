@@ -22,11 +22,21 @@ class BottomNavbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.text.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, -6),
+          ),
+        ],
+        border: Border(
+          top: BorderSide(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+        ),
       ),
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -77,22 +87,22 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = active
-        ? AppColors.coffee
-        : AppColors.text.withValues(alpha: 0.85);
+        ? AppColors.primary
+        : AppColors.coffee.withValues(alpha: 0.6);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 1),
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 3),
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
               color: color,
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: active ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
         ],
@@ -111,24 +121,20 @@ class _AddButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 60,
-        height: 60,
+        width: 50,
+        height: 50,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.white,
-          border: Border.all(
-            color: AppColors.text.withValues(alpha: 0.72),
-            width: 2.5,
-          ),
-          boxShadow: const [
+          color: AppColors.primary,
+          boxShadow: [
             BoxShadow(
-              color: Color(0x22000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: const Icon(Icons.add, size: 34, color: AppColors.text),
+        child: const Icon(Icons.add, size: 26, color: AppColors.white),
       ),
     );
   }

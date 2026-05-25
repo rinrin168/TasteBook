@@ -16,7 +16,7 @@ class AuthSuccessScreen extends StatelessWidget {
     final iconData = args?['icon'] as IconData? ?? Icons.check_circle_outline;
 
     return Scaffold(
-      backgroundColor: TasteBookColors.tan,
+      backgroundColor: TasteBookColors.cream,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

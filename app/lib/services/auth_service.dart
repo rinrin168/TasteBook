@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
-  // Private constructor for Singleton pattern
+  // Private constructor for Singleton pattern. Centralizes authentication state
+  // across the application lifespan, ensuring all screens read from the same instance.
   AuthService._internal();
   static final AuthService instance = AuthService._internal();
 
@@ -22,13 +23,20 @@ class AuthService {
   }
 
   /// 1. SIGN UP METHOD
-  /// Creates an auth credential and initializes the user's Firestore profile document
+  /// Creates an auth credential and initializes the user's Firestore profile document.
+  /// 
+  /// Logic Flow:
+  /// 1. Registers the user's credentials (email & password) with Firebase Authentication.
+  /// 2. Synchronizes the user's full name to Firebase Auth's displayName property.
+  /// 3. dispatches a verification hyperlink to the registered email.
+  /// 4. Registers a mirroring profile document under the Firestore 'users' collection.
+  ///    This holds metadata like 'recipeCount' and timestamps which Auth Core doesn't support.
   Future<UserCredential> signUp({
     required String fullName,
     required String email,
     required String password,
   }) async {
-    // Create authentication record
+    // Create authentication record in Firebase Auth
     UserCredential credential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -41,7 +49,8 @@ class AuthService {
       // Trigger email verification
       await credential.user!.sendEmailVerification();
 
-      // Create user profile inside your Cloud Firestore database
+      // Create user profile inside your Cloud Firestore database.
+      // Firestore document is mapped explicitly to the Auth 'uid' to link both domains.
       await _db.collection('users').doc(credential.user!.uid).set({
         'uid': credential.user!.uid,
         'displayName': fullName,
@@ -87,7 +96,13 @@ class AuthService {
   }
 
   /// 5. SIGN IN WITH EMAIL OR USERNAME
-  /// Handles user login verification checks dynamically
+  /// Handles user login verification checks dynamically.
+  /// 
+  /// Logic Flow:
+  /// 1. Sanitizes the user identifier (email or username).
+  /// 2. If no '@' is present, assumes it's a username query.
+  /// 3. Searches the Firestore 'users' collection to locate the document matching the username.
+  /// 4. Extracts the matched user's email address and logs in with Firebase Auth.
   Future<UserCredential> signInWithEmailOrUsername({
     required String identifier,
     required String password,
@@ -111,7 +126,7 @@ class AuthService {
       email = querySnapshot.docs.first.get('email');
     }
 
-    // Process actual sign-in check
+    // Process actual sign-in check using resolved email address
     UserCredential credential = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -124,7 +139,13 @@ class AuthService {
   }
 
   /// 6. UPDATE USER PROFILE
-  /// Changes user security metrics and updates the database entry counters safely
+  /// Changes user security metrics and updates the database entry counters safely.
+  /// 
+  /// Logic Flow:
+  /// 1. Updates credentials in Firebase Authentication (such as updating password or email).
+  /// 2. 'verifyBeforeUpdateEmail' sends a verification link to the new email address 
+  ///    before applying it, protecting against account takeover.
+  /// 3. Updates corresponding fields in the user's Firestore document.
   Future<void> updateProfile({
     String? displayName,
     String? email,

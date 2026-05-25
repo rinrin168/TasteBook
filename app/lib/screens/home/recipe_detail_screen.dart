@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/common/recipe_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/recipe_model.dart';
@@ -185,8 +186,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             flexibleSpace: FlexibleSpaceBar(
               background: Hero(
                 tag: 'recipe-img-${_recipe.id}',
-                child: Image.asset(
-                  _recipe.imagePath,
+                child: RecipeImage(
+                  imagePath: _recipe.imagePath,
+                  width: double.infinity,
+                  height: double.infinity,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -194,8 +197,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           ),
           SliverToBoxAdapter(
             child: Container(
-              color: AppColors.tan,
-              padding: const EdgeInsets.all(22),
+              color: AppColors.background,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -206,25 +209,32 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF79D7E7),
+                          color: AppColors.sage,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           _recipe.category,
                           style: const TextStyle(
-                            color: AppColors.text,
+                            color: AppColors.white,
                             fontWeight: FontWeight.w800,
-                            fontSize: 12,
+                            fontSize: 11,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ),
-                      Text(
-                        _timeLabel(_recipe.createdAt),
-                        style: const TextStyle(
-                          color: AppColors.coffee,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(Icons.schedule_rounded, size: 14, color: AppColors.coffee),
+                          const SizedBox(width: 4),
+                          Text(
+                            _timeLabel(_recipe.createdAt),
+                            style: const TextStyle(
+                              color: AppColors.coffee,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -234,22 +244,34 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   Text(
                     _recipe.title,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppColors.text,
+                          color: AppColors.primary,
                           fontWeight: FontWeight.w900,
+                          fontSize: 26,
+                          letterSpacing: -0.5,
                         ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
 
                   // Recipe Author
-                  Text(
-                    'By ${_recipe.authorName}',
-                    style: const TextStyle(
-                      color: AppColors.coffee,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundColor: AppColors.tan,
+                        child: const Icon(Icons.person_outline_rounded, size: 12, color: AppColors.primary),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'By ${_recipe.authorName}',
+                        style: const TextStyle(
+                          color: AppColors.coffee,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Action Buttons for Author
                   if (isAuthor) ...[
@@ -258,12 +280,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _editRecipe,
-                            icon: const Icon(Icons.edit_outlined),
+                            icon: const Icon(Icons.edit_outlined, size: 18),
                             label: const Text('Edit Recipe'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.text,
-                              side: const BorderSide(color: AppColors.text, width: 1.5),
+                              foregroundColor: AppColors.primary,
+                              side: const BorderSide(color: AppColors.primary, width: 1.5),
                               shape: const StadiumBorder(),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
                             ),
                           ),
                         ),
@@ -271,79 +294,162 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         Expanded(
                           child: FilledButton.icon(
                             onPressed: _confirmDelete,
-                            icon: const Icon(Icons.delete_outline_rounded),
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
                             label: const Text('Delete'),
                             style: FilledButton.styleFrom(
                               backgroundColor: Colors.redAccent,
                               foregroundColor: Colors.white,
                               shape: const StadiumBorder(),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                              elevation: 2,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                   ],
 
                   const Divider(color: AppColors.outline, thickness: 1),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 20),
 
-                  // Description
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
+                  // Description Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.text.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.description_outlined, size: 18, color: AppColors.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Description',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _recipe.description.isNotEmpty ? _recipe.description : 'No description provided.',
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            height: 1.45,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _recipe.description.isNotEmpty ? _recipe.description : 'No description provided.',
-                    style: const TextStyle(
-                      color: AppColors.text,
-                      height: 1.4,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                  // Ingredients
-                  const Text(
-                    'Ingredients',
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
+                  // Ingredients Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.text.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.shopping_basket_outlined, size: 18, color: AppColors.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Ingredients',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _recipe.ingredients.isNotEmpty ? _recipe.ingredients : 'No ingredients specified.',
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            height: 1.45,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _recipe.ingredients.isNotEmpty ? _recipe.ingredients : 'No ingredients specified.',
-                    style: const TextStyle(
-                      color: AppColors.text,
-                      height: 1.4,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                  // Instructions
-                  const Text(
-                    'Cooking Instructions',
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
+                  // Instructions Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppColors.outline.withValues(alpha: 0.4), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.text.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _recipe.instructions.isNotEmpty ? _recipe.instructions : 'No cooking instructions specified.',
-                    style: const TextStyle(
-                      color: AppColors.text,
-                      height: 1.4,
-                      fontSize: 14,
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.menu_book_rounded, size: 18, color: AppColors.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Cooking Instructions',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _recipe.instructions.isNotEmpty ? _recipe.instructions : 'No cooking instructions specified.',
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            height: 1.45,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 40),
