@@ -57,6 +57,7 @@ dependencies:
   # Utilities
   intl:
   shared_preferences: ^2.5.5
+  firebase_storage: ^13.4.1
 
 dev_dependencies:
   flutter_test:

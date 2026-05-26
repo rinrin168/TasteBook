@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../services/auth_service.dart';
@@ -75,10 +76,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _saveChanges() {
+    final email = _emailController.text.trim();
+    
+    // Simple email validation
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address (e.g., example@gmail.com).')),
+      );
+      return;
+    }
+
     AuthService.instance
         .updateProfile(
           displayName: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text.trim().isEmpty
               ? null
               : _passwordController.text.trim(),
@@ -93,9 +105,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         })
         .catchError((error) {
           if (!mounted) return;
+          String errorMessage = error.toString();
+          if (error is FirebaseAuthException) {
+            if (error.code == 'email-already-in-use') {
+              errorMessage = 'This email address is already in use by another account.';
+            } else {
+              errorMessage = error.message ?? errorMessage;
+            }
+          } else if (errorMessage.contains('email-already-in-use')) {
+             errorMessage = 'This email address is already in use by another account.';
+          }
+          
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(error.toString())));
+          ).showSnackBar(SnackBar(content: Text(errorMessage)));
         });
   }
 

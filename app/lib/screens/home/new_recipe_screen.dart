@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../models/recipe_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/recipe_service.dart';
+import '../../services/storage_service.dart';
 
 class NewRecipeScreen extends StatefulWidget {
   const NewRecipeScreen({super.key});
@@ -39,7 +40,7 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
   ];
 
   String? _selectedCategory;
-  String? _selectedImagePath;
+  XFile? _selectedImage;
   bool _isSubmitting = false;
 
   Future<void> _pickImage() async {
@@ -48,7 +49,7 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         setState(() {
-          _selectedImagePath = pickedFile.path;
+          _selectedImage = pickedFile;
         });
       }
     } catch (e) {
@@ -86,6 +87,14 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
     });
 
     try {
+      String finalImagePath = 'assets/images/img1.jpg';
+      if (_selectedImage != null) {
+        finalImagePath = await StorageService.instance.uploadRecipeImage(
+          _selectedImage!,
+          user.uid,
+        );
+      }
+
       await RecipeService.instance.createRecipe(
         RecipeModel(
           id: '',
@@ -102,7 +111,7 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
           description: _descriptionController.text.trim(),
           ingredients: _ingredientsController.text.trim(),
           instructions: _instructionsController.text.trim(),
-          imagePath: _selectedImagePath ?? 'assets/images/img1.jpg',
+          imagePath: finalImagePath,
           createdAt: DateTime.now(),
           favoriteUserIds: const [],
         ),
@@ -152,16 +161,16 @@ class _NewRecipeScreenState extends State<NewRecipeScreen> {
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: _selectedImagePath != null
+                  child: _selectedImage != null
                       ? (kIsWeb
                           ? Image.network(
-                              _selectedImagePath!,
+                              _selectedImage!.path,
                               height: 140,
                               fit: BoxFit.cover,
                               width: double.infinity,
                             )
                           : Image.file(
-                              File(_selectedImagePath!),
+                              File(_selectedImage!.path),
                               height: 140,
                               fit: BoxFit.cover,
                               width: double.infinity,
