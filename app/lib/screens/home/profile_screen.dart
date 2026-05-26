@@ -114,6 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
           } else if (errorMessage.contains('email-already-in-use')) {
              errorMessage = 'This email address is already in use by another account.';
+          } else if (errorMessage.contains('INVALID_NEW_EMAIL')) {
+             errorMessage = 'Please enter a valid new email address.';
           }
           
           ScaffoldMessenger.of(
